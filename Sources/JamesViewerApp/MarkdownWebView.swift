@@ -16,6 +16,7 @@ struct MarkdownWebView: NSViewRepresentable {
     }
 
     func makeNSView(context: Context) -> WKWebView {
+        DiagLog.log("MarkdownWebView.makeNSView called, markdown.count=\(markdown.count), fileURL=\(fileURL?.path ?? "nil")")
         let configuration = WKWebViewConfiguration()
         configuration.preferences.javaScriptEnabled = true
 
@@ -31,7 +32,6 @@ struct MarkdownWebView: NSViewRepresentable {
         configuration.userContentController = userContentController
 
         let webView = WKWebView(frame: .zero, configuration: configuration)
-        webView.setValue(false, forKey: "drawsBackground")
         webView.navigationDelegate = context.coordinator
         webViewStore.webView = webView
         return webView
@@ -39,7 +39,6 @@ struct MarkdownWebView: NSViewRepresentable {
 
     func updateNSView(_ webView: WKWebView, context: Context) {
         context.coordinator.onScrollChange = onScrollChange
-
         webView.pageZoom = Double(zoomPercent) / 100.0
 
         if searchQuery != context.coordinator.lastSearchQuery {
@@ -47,7 +46,10 @@ struct MarkdownWebView: NSViewRepresentable {
             runFind(query: searchQuery, webView: webView)
         }
 
-        guard let bundleURL = Bundle.main.resourceURL else { return }
+        guard let bundleURL = Bundle.main.resourceURL else {
+            DiagLog.log("updateNSView: Bundle.main.resourceURL is nil — aborting")
+            return
+        }
         let stripped = FrontMatterStripper.strip(markdown)
         let bodyHTML = MarkdownRenderer.render(stripped)
         let html = HTMLTemplate.wrap(
@@ -57,8 +59,11 @@ struct MarkdownWebView: NSViewRepresentable {
         )
 
         if html == context.coordinator.lastHTML {
+            DiagLog.log("updateNSView: HTML unchanged, skipping (html.count=\(html.count))")
             return
         }
+
+        DiagLog.log("updateNSView: loading HTML (markdown=\(markdown.count), html=\(html.count), bundleURL=\(bundleURL.path), hasLoadedOnce=\(context.coordinator.hasLoadedOnce))")
 
         let baseURL = fileURL?.deletingLastPathComponent() ?? bundleURL
 
@@ -112,11 +117,24 @@ struct MarkdownWebView: NSViewRepresentable {
             }
         }
 
+        func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
+            DiagLog.log("webView didStart provisional navigation")
+        }
+
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            DiagLog.log("webView didFinish navigation")
             hasLoadedOnce = true
             guard let scrollY = pendingScrollY, scrollY > 0 else { return }
             webView.evaluateJavaScript("window.scrollTo(0, \(scrollY));") { _, _ in }
             pendingScrollY = nil
+        }
+
+        func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+            DiagLog.log("webView didFail navigation: \(error.localizedDescription)")
+        }
+
+        func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+            DiagLog.log("webView didFailProvisionalNavigation: \(error.localizedDescription)")
         }
     }
 

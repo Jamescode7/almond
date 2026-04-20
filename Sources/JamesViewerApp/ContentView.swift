@@ -54,10 +54,19 @@ struct ContentView: View {
         }
         .frame(minWidth: 600, minHeight: 400)
         .toolbar { toolbarContent }
+        .background(WindowConfigurator(preferredSize: CGSize(width: 960, height: 720)))
         .background(keyboardShortcuts)
         .onDrop(of: [.fileURL], isTargeted: nil, perform: handleDrop)
-        .onAppear(perform: startWatching)
+        .onAppear {
+            ensureContentLoaded()
+            startWatching()
+        }
         .onDisappear { watcher?.stop() }
+    }
+
+    private func ensureContentLoaded() {
+        guard text.isEmpty, fileURL != nil else { return }
+        reloadFromDisk()
     }
 
     @ToolbarContentBuilder

@@ -9,12 +9,8 @@ public enum HTMLTemplate {
     public static func wrap(
         bodyHTML: String,
         theme: Theme,
-        zoomPercent: Int,
         bundleURL: URL
     ) -> String {
-        let zoom = max(80, min(200, zoomPercent))
-        let fontSize = Int((Double(zoom) * 16.0 / 100.0).rounded())
-
         let markdownCSS: String
         let highlightCSS: String
         switch theme {
@@ -44,7 +40,7 @@ public enum HTMLTemplate {
               background-color: \(theme == .dark ? "#0d1117" : "#ffffff");
             }
             body {
-              font-size: \(fontSize)px;
+              font-size: 16px;
               line-height: 1.6;
             }
             .markdown-body {

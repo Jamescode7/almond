@@ -41,9 +41,32 @@ struct ContentView: View {
         }
         .frame(minWidth: 600, minHeight: 400)
         .toolbar { toolbarContent }
+        .background(keyboardShortcuts)
         .onDrop(of: [.fileURL], isTargeted: nil, perform: handleDrop)
         .onAppear(perform: startWatching)
         .onDisappear { watcher?.stop() }
+    }
+
+    private var keyboardShortcuts: some View {
+        ZStack {
+            Button("", action: viewState.zoomIn)
+                .keyboardShortcut("=", modifiers: .command)
+                .hidden()
+            Button("", action: viewState.zoomIn)
+                .keyboardShortcut("+", modifiers: .command)
+                .hidden()
+            Button("", action: viewState.zoomOut)
+                .keyboardShortcut("-", modifiers: .command)
+                .hidden()
+            Button("", action: viewState.zoomReset)
+                .keyboardShortcut("0", modifiers: .command)
+                .hidden()
+            Button("", action: reloadFromDisk)
+                .keyboardShortcut("r", modifiers: .command)
+                .hidden()
+        }
+        .frame(width: 0, height: 0)
+        .allowsHitTesting(false)
     }
 
     @ToolbarContentBuilder

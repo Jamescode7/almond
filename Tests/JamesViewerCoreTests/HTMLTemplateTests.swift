@@ -8,7 +8,6 @@ final class HTMLTemplateTests: XCTestCase {
         let html = HTMLTemplate.wrap(
             bodyHTML: "<p>hi</p>",
             theme: .light,
-            zoomPercent: 100,
             bundleURL: bundleURL
         )
         XCTAssertTrue(html.contains("github-markdown-light.css"), "got: \(html)")
@@ -21,7 +20,6 @@ final class HTMLTemplateTests: XCTestCase {
         let html = HTMLTemplate.wrap(
             bodyHTML: "<p>hi</p>",
             theme: .dark,
-            zoomPercent: 100,
             bundleURL: bundleURL
         )
         XCTAssertTrue(html.contains("github-markdown-dark.css"), "got: \(html)")
@@ -30,30 +28,10 @@ final class HTMLTemplateTests: XCTestCase {
         XCTAssertTrue(html.contains("data-theme=\"dark\""), "got: \(html)")
     }
 
-    func testZoomAffectsFontSize() {
-        let zoomed = HTMLTemplate.wrap(bodyHTML: "", theme: .light, zoomPercent: 150, bundleURL: bundleURL)
-        XCTAssertTrue(zoomed.contains("font-size: 24px"), "150% → 24px, got: \(zoomed)")
-
-        let reset = HTMLTemplate.wrap(bodyHTML: "", theme: .light, zoomPercent: 100, bundleURL: bundleURL)
-        XCTAssertTrue(reset.contains("font-size: 16px"), "100% → 16px, got: \(reset)")
-
-        let min = HTMLTemplate.wrap(bodyHTML: "", theme: .light, zoomPercent: 80, bundleURL: bundleURL)
-        XCTAssertTrue(min.contains("font-size: 13px"), "80% → 13px (rounded 12.8), got: \(min)")
-    }
-
-    func testZoomClamping() {
-        let overMax = HTMLTemplate.wrap(bodyHTML: "", theme: .light, zoomPercent: 500, bundleURL: bundleURL)
-        XCTAssertTrue(overMax.contains("font-size: 32px"), "clamp to 200% → 32px, got: \(overMax)")
-
-        let underMin = HTMLTemplate.wrap(bodyHTML: "", theme: .light, zoomPercent: 10, bundleURL: bundleURL)
-        XCTAssertTrue(underMin.contains("font-size: 13px"), "clamp to 80% → 13px, got: \(underMin)")
-    }
-
     func testBodyHTMLInsertedIntoArticle() {
         let html = HTMLTemplate.wrap(
             bodyHTML: "<h1>Unique-Content-Marker</h1>",
             theme: .light,
-            zoomPercent: 100,
             bundleURL: bundleURL
         )
         XCTAssertTrue(html.contains("Unique-Content-Marker"), "got: \(html)")
@@ -64,10 +42,19 @@ final class HTMLTemplateTests: XCTestCase {
         let html = HTMLTemplate.wrap(
             bodyHTML: "",
             theme: .light,
-            zoomPercent: 100,
             bundleURL: bundleURL
         )
         XCTAssertTrue(html.contains("highlight.min.js"), "got: \(html)")
         XCTAssertTrue(html.contains("hljs.highlightAll"), "got: \(html)")
+    }
+
+    func testFixedBaseFontSize() {
+        let html = HTMLTemplate.wrap(bodyHTML: "", theme: .light, bundleURL: bundleURL)
+        XCTAssertTrue(html.contains("font-size: 16px"), "줌은 WKWebView.pageZoom 으로 적용, HTMLTemplate 는 항상 16px 기본")
+    }
+
+    func testDarkBackgroundColor() {
+        let html = HTMLTemplate.wrap(bodyHTML: "", theme: .dark, bundleURL: bundleURL)
+        XCTAssertTrue(html.contains("#0d1117"), "got: \(html)")
     }
 }

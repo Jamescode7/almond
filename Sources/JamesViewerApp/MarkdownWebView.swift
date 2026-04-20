@@ -22,13 +22,14 @@ struct MarkdownWebView: NSViewRepresentable {
     }
 
     func updateNSView(_ webView: WKWebView, context: Context) {
+        webView.pageZoom = Double(zoomPercent) / 100.0
+
         guard let bundleURL = Bundle.main.resourceURL else { return }
         let stripped = FrontMatterStripper.strip(markdown)
         let bodyHTML = MarkdownRenderer.render(stripped)
         let html = HTMLTemplate.wrap(
             bodyHTML: bodyHTML,
             theme: theme,
-            zoomPercent: zoomPercent,
             bundleURL: bundleURL
         )
 

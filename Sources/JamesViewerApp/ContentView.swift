@@ -7,6 +7,7 @@ struct ContentView: View {
     let fileURL: URL?
 
     @State private var text: String
+    @State private var fileMissing: Bool = false
     @State private var watcher: FileWatcher?
 
     init(document: MarkdownDocument, fileURL: URL?) {
@@ -16,10 +17,17 @@ struct ContentView: View {
     }
 
     var body: some View {
-        MarkdownWebView(markdown: text, fileURL: fileURL)
-            .frame(minWidth: 600, minHeight: 400)
-            .onAppear(perform: startWatching)
-            .onDisappear { watcher?.stop() }
+        ZStack(alignment: .top) {
+            MarkdownWebView(markdown: text, fileURL: fileURL)
+            if fileMissing {
+                MissingFileBanner(fileURL: fileURL) {
+                    fileMissing = false
+                }
+            }
+        }
+        .frame(minWidth: 600, minHeight: 400)
+        .onAppear(perform: startWatching)
+        .onDisappear { watcher?.stop() }
     }
 
     private func startWatching() {
@@ -29,7 +37,7 @@ struct ContentView: View {
             case .modified:
                 reloadFromDisk()
             case .deleted, .renamed:
-                break  // Task 2.3 에서 배너 추가 예정
+                fileMissing = true
             }
         }
         watcher?.stop()
@@ -45,5 +53,6 @@ struct ContentView: View {
               let newText = String(data: data, encoding: .utf8)
         else { return }
         text = newText
+        fileMissing = false
     }
 }

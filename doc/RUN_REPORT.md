@@ -91,3 +91,51 @@
 - **다음 Task 진입 여부**: **yes** (Task 3 착수)
 
 ---
+
+## Task 3 — UI 크롬 (툴바·줌·다크 모드·상태바·환경설정·단축키·검색)
+
+- **완료 시각**: 2026-04-20 23:00 (KST)
+- **커밋 범위**: `cffd866..c1ed327` (8 개 커밋)
+- **추가된 파일**:
+  - `Sources/JamesViewerCore/TextStats.swift` — word/char count
+  - `Tests/JamesViewerCoreTests/TextStatsTests.swift` — 10 케이스
+  - `Sources/JamesViewerApp/AppearanceMode.swift` — enum + next()
+  - `Sources/JamesViewerApp/DocumentViewState.swift` — 윈도우별 상태
+  - `Sources/JamesViewerApp/SettingsView.swift` — 환경설정 UI
+  - `Sources/JamesViewerApp/CLIInstaller.swift` — mdv symlink 설치/제거
+  - `Sources/JamesViewerApp/SearchBar.swift` — ⌘F UI
+  - `Sources/JamesViewerApp/WebViewStore.swift` — webView 참조 공유
+- **변경된 파일**:
+  - `Sources/JamesViewerCore/HTMLTemplate.swift` — zoomPercent 파라미터 제거 (pageZoom 으로 이관)
+  - `Tests/JamesViewerCoreTests/HTMLTemplateTests.swift` — zoom 관련 테스트 재정비
+  - `Sources/JamesViewerApp/JamesViewerApp.swift` — Settings scene 추가
+  - `Sources/JamesViewerApp/ContentView.swift` — 툴바/상태바/검색바/단축키/스크롤% 전면 통합
+  - `Sources/JamesViewerApp/MarkdownWebView.swift` — pageZoom + scroll tracking + search + coordinator 확장
+- **검증 결과**:
+  - `swift test`: **32/32 통과** (22 → 32, TextStats 10 개 추가)
+  - `xcodebuild Debug build`: **BUILD SUCCEEDED**
+  - HTMLTemplate 테스트 6 개 (light/dark/article/hljs/fixedFont/darkBG)
+- **구현 범위**:
+  - 툴바: appearance 토글(🌗), 줌- / 줌+ 버튼 + help 툴팁
+  - 줌: `webView.pageZoom`, 80-200% 10% step, ⌘= ⌘+ ⌘- ⌘0 단축키
+  - 다크: 3-way (system/light/dark), ⇧⌘D, override 없을 때 NSApp.effectiveAppearance 추종
+  - 상태바: word / char / scroll% (WKScriptMessageHandler 기반 실시간)
+  - 환경설정: ⌘, 로 오픈, 3 항목 (Default appearance, Default zoom, mdv CLI)
+  - mdv CLI: `/usr/local/bin/mdv` symlink. 샌드박스 권한 부족 시 수동 명령 클립보드 복사 + alert
+  - 검색: ⌘F 오픈 / ESC 닫기, JS `window.find`, Enter 로 다음 매치 순회
+  - 리로드: ⌘R → reloadFromDisk
+- **자율 검증 불가 → morning 확인 대상**:
+  - 줌 단축키 실제 반응 (⌘= / ⌘+ / ⌘- / ⌘0)
+  - ⇧⌘D 다크 토글 시 CSS 실제 스왑 + 플래시 여부
+  - 툴바 appearance/줌 버튼 시각적 렌더
+  - 상태바 스크롤% 수치 업데이트 반응성
+  - ⌘, 환경설정 창 UI (3 항목 레이아웃)
+  - mdv 심볼릭 링크 설치 alert 흐름 (샌드박스 실패 → Terminal 안내)
+  - ⌘F 검색바 표시/숨김 + TextField 포커스 + Enter 네비게이션
+  - ESC 검색바 닫기 (showSearch=true 일 때만 활성)
+- **스펙과 차이 / 확인 필요**:
+  - spec §3.1.7 검색 "다음/이전 매치 네비게이션 (⌘G / ⇧⌘G)" — MVP 에서는 Enter 반복만 제공. ⌘G 별도 단축키 없음. v2.
+  - spec §3.1.5 환경설정 default zoom — 선택지 (80/90/100/110/120/150/200) 으로 7 단계 제공. spec "환경설정(⌘,) MVP 화면은 3개 항목만" 을 그대로 유지.
+- **다음 Task 진입 여부**: **yes** (Task 4 착수)
+
+---

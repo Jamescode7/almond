@@ -1,0 +1,19 @@
+JamesViewer bundles the following third-party assets for offline markdown rendering:
+
+1. github-markdown-css v5.5.1
+   License: MIT
+   Source: https://github.com/sindresorhus/github-markdown-css
+   Files:
+     - Resources/css/github-markdown-light.css
+     - Resources/css/github-markdown-dark.css
+
+2. highlight.js v11.9.0
+   License: BSD-3-Clause
+   Source: https://github.com/highlightjs/highlight.js
+   Files:
+     - Resources/js/highlight.min.js
+     - Resources/css/highlight-github.css (GitHub theme)
+     - Resources/css/highlight-atom-one-dark.css (Atom One Dark theme)
+
+Full license texts are available in the respective upstream repositories.
+These assets are bundled to keep JamesViewer fully offline — no runtime CDN calls.

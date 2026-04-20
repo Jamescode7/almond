@@ -33,7 +33,9 @@ struct MarkdownWebView: NSViewRepresentable {
 
         let webView = WKWebView(frame: .zero, configuration: configuration)
         webView.navigationDelegate = context.coordinator
+        webView.uiDelegate = context.coordinator
         webViewStore.webView = webView
+        DiagLog.log("makeNSView returning webView, delegate set: \(webView.navigationDelegate != nil)")
         return webView
     }
 
@@ -59,28 +61,34 @@ struct MarkdownWebView: NSViewRepresentable {
         )
 
         if html == context.coordinator.lastHTML {
-            DiagLog.log("updateNSView: HTML unchanged, skipping (html.count=\(html.count))")
+            DiagLog.log("updateNSView: HTML unchanged, skipping")
             return
         }
 
-        DiagLog.log("updateNSView: loading HTML (markdown=\(markdown.count), html=\(html.count), bundleURL=\(bundleURL.path), hasLoadedOnce=\(context.coordinator.hasLoadedOnce))")
+        DiagLog.log("updateNSView: about to load HTML (markdown=\(markdown.count), html=\(html.count), webView.isLoading=\(webView.isLoading))")
 
-        let baseURL = fileURL?.deletingLastPathComponent() ?? bundleURL
+        // 디버그: 렌더 대상 HTML 을 temp 에 저장해 직접 브라우저로 열어볼 수 있게
+        let debugPath = FileManager.default.temporaryDirectory.appendingPathComponent("jamesviewer-render.html")
+        try? html.data(using: .utf8)?.write(to: debugPath)
+        DiagLog.log("debug HTML saved: \(debugPath.path)")
 
         if context.coordinator.hasLoadedOnce {
             webView.evaluateJavaScript("window.scrollY") { result, _ in
                 let scrollY = (result as? NSNumber)?.doubleValue ?? 0
                 context.coordinator.pendingScrollY = scrollY
                 context.coordinator.lastHTML = html
-                webView.loadHTMLString(html, baseURL: baseURL)
+                DiagLog.log("loadHTMLString (reload) baseURL=nil")
+                webView.loadHTMLString(html, baseURL: nil)
             }
         } else {
             context.coordinator.lastHTML = html
-            webView.loadHTMLString(html, baseURL: baseURL)
+            DiagLog.log("loadHTMLString (first) baseURL=nil")
+            webView.loadHTMLString(html, baseURL: nil)
+            DiagLog.log("loadHTMLString returned, webView.isLoading=\(webView.isLoading)")
         }
     }
 
-    final class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
+    final class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler, WKUIDelegate {
         var pendingScrollY: Double?
         var lastHTML: String?
         var lastSearchQuery: String?
@@ -109,16 +117,23 @@ struct MarkdownWebView: NSViewRepresentable {
             _ userContentController: WKUserContentController,
             didReceive message: WKScriptMessage
         ) {
-            guard message.name == "scrollHandler",
-                  let percent = (message.body as? NSNumber)?.doubleValue
-            else { return }
-            DispatchQueue.main.async {
-                self.onScrollChange(percent)
+            if message.name == "scrollHandler",
+               let percent = (message.body as? NSNumber)?.doubleValue {
+                DispatchQueue.main.async { self.onScrollChange(percent) }
             }
         }
 
+        func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+            DiagLog.log("webView decidePolicyFor navigationAction url=\(navigationAction.request.url?.absoluteString ?? "nil")")
+            decisionHandler(.allow)
+        }
+
         func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
-            DiagLog.log("webView didStart provisional navigation")
+            DiagLog.log("webView didStartProvisionalNavigation")
+        }
+
+        func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+            DiagLog.log("webView didCommit navigation")
         }
 
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
@@ -130,11 +145,15 @@ struct MarkdownWebView: NSViewRepresentable {
         }
 
         func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
-            DiagLog.log("webView didFail navigation: \(error.localizedDescription)")
+            DiagLog.log("webView didFail: \(error.localizedDescription) — \((error as NSError).userInfo)")
         }
 
         func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
-            DiagLog.log("webView didFailProvisionalNavigation: \(error.localizedDescription)")
+            DiagLog.log("webView didFailProvisionalNavigation: \(error.localizedDescription) — \((error as NSError).userInfo)")
+        }
+
+        func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
+            DiagLog.log("webViewWebContentProcessDidTerminate — WebContent process crashed!")
         }
     }
 

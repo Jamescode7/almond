@@ -64,6 +64,9 @@ struct ContentView: View {
             Button("", action: reloadFromDisk)
                 .keyboardShortcut("r", modifiers: .command)
                 .hidden()
+            Button("", action: viewState.cycleAppearance)
+                .keyboardShortcut("d", modifiers: [.shift, .command])
+                .hidden()
         }
         .frame(width: 0, height: 0)
         .allowsHitTesting(false)

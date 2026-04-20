@@ -22,3 +22,37 @@
 - **다음 Task 진입 여부**: **yes** (Task 1 착수)
 
 ---
+
+## Task 1 — Xcode 프로젝트 스캐폴드 + 마크다운 렌더 파이프라인
+
+- **완료 시각**: 2026-04-20 22:48 (KST)
+- **커밋 범위**: `b17ec9f..2a9de87` (5 개 커밋)
+- **추가된 파일**:
+  - `.gitignore`, `README.md` (stub)
+  - `Package.swift`, `project.yml`
+  - `Sources/JamesViewerCore/{MarkdownRenderer,HTMLTemplate,FrontMatterStripper}.swift`
+  - `Sources/JamesViewerApp/{JamesViewerApp,MarkdownDocument,ContentView,MarkdownWebView}.swift`
+  - `Tests/JamesViewerCoreTests/{MarkdownRenderer,HTMLTemplate,FrontMatterStripper}Tests.swift`
+  - `Resources/css/github-markdown-{light,dark}.css` (MIT)
+  - `Resources/css/highlight-{github,atom-one-dark}.css` (BSD-3)
+  - `Resources/js/highlight.min.js` (BSD-3)
+  - `Resources/LICENSES.txt`
+- **검증 결과**:
+  - `swift build`: 성공 (`JamesViewerCore` 라이브러리)
+  - `swift test`: **22/22 통과**
+    - MarkdownRendererTests: 11 (H1-H6, 코드블록, 테이블, 태스크리스트, HTML escape, link, image, em/strong/del, 중첩 list)
+    - FrontMatterStripperTests: 5 (YAML 제거, 없음 보존, malformed 보존, `...` 종결자, `---` 수평선 오판 방지)
+    - HTMLTemplateTests: 6 (light/dark CSS, zoom font-size, clamp, article 래핑, hljs 포함)
+  - `xcodebuild Debug build`: **BUILD SUCCEEDED**
+  - Bundle 검증: `JamesViewer.app/Contents/Resources/` 에 CSS 4 + JS 1 + LICENSES.txt 전부 포함
+  - Info.plist: `CFBundleDocumentTypes`, `UTImportedTypeDeclarations`, `NSAllowsArbitraryLoadsInWebContent`, `CFBundleShortVersionString=0.1.0`, `LSMinimumSystemVersion=13.0` 확인
+  - Universal binary: x86_64 + arm64
+- **스펙과 차이 / 확인 필요**:
+  - **Footnote 미지원**: spec §3.1 에 "각주" 포함되어 있으나 swift-markdown 0.7.3 에는 `FootnoteDefinition`/`FootnoteReference` 노드가 없음. 원문이 raw text 로 fallthrough 됨. 렌더러는 오류 없음. v2 에서 커스텀 파서 추가 검토.
+  - **Info.plist / entitlements**: `xcodegen generate` 가 매번 덮어쓰므로 `.gitignore` 처리. `project.yml` 이 단일 권위.
+  - **Resources 번들 구조**: XcodeGen `buildPhase: resources` 로 flat 배치되어 `Contents/Resources/` 직하 모든 파일 존재. `HTMLTemplate` 경로를 flat 에 맞춰 조정.
+  - **Code signing**: `CODE_SIGN_IDENTITY=-` (ad-hoc). v2 에서 Developer 계정 서명 전환 예정.
+- **자율 검증 불가 → morning 확인 대상**: 실제 앱 실행 + md 열기 + WKWebView 렌더 결과
+- **다음 Task 진입 여부**: **yes** (Task 2 착수)
+
+---

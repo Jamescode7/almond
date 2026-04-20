@@ -9,14 +9,27 @@ struct MarkdownWebView: NSViewRepresentable {
     let theme: HTMLTemplate.Theme
     let searchQuery: String
     let webViewStore: WebViewStore
+    let onScrollChange: (Double) -> Void
 
     func makeCoordinator() -> Coordinator {
-        Coordinator()
+        Coordinator(onScrollChange: onScrollChange)
     }
 
     func makeNSView(context: Context) -> WKWebView {
         let configuration = WKWebViewConfiguration()
         configuration.preferences.javaScriptEnabled = true
+
+        let userContentController = WKUserContentController()
+        userContentController.add(context.coordinator, name: "scrollHandler")
+
+        let scrollScript = WKUserScript(
+            source: Coordinator.scrollTrackingJS,
+            injectionTime: .atDocumentEnd,
+            forMainFrameOnly: true
+        )
+        userContentController.addUserScript(scrollScript)
+        configuration.userContentController = userContentController
+
         let webView = WKWebView(frame: .zero, configuration: configuration)
         webView.setValue(false, forKey: "drawsBackground")
         webView.navigationDelegate = context.coordinator
@@ -25,6 +38,8 @@ struct MarkdownWebView: NSViewRepresentable {
     }
 
     func updateNSView(_ webView: WKWebView, context: Context) {
+        context.coordinator.onScrollChange = onScrollChange
+
         webView.pageZoom = Double(zoomPercent) / 100.0
 
         if searchQuery != context.coordinator.lastSearchQuery {
@@ -60,11 +75,42 @@ struct MarkdownWebView: NSViewRepresentable {
         }
     }
 
-    final class Coordinator: NSObject, WKNavigationDelegate {
+    final class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
         var pendingScrollY: Double?
         var lastHTML: String?
         var lastSearchQuery: String?
         var hasLoadedOnce: Bool = false
+        var onScrollChange: (Double) -> Void
+
+        init(onScrollChange: @escaping (Double) -> Void) {
+            self.onScrollChange = onScrollChange
+        }
+
+        static let scrollTrackingJS: String = """
+        (function() {
+          function postScrollPercent() {
+            var max = document.documentElement.scrollHeight - window.innerHeight;
+            var pct = max > 0 ? Math.max(0, Math.min(100, (window.scrollY / max) * 100)) : 0;
+            window.webkit.messageHandlers.scrollHandler.postMessage(pct);
+          }
+          window.addEventListener('scroll', postScrollPercent, { passive: true });
+          window.addEventListener('load', postScrollPercent);
+          window.addEventListener('resize', postScrollPercent);
+          postScrollPercent();
+        })();
+        """
+
+        func userContentController(
+            _ userContentController: WKUserContentController,
+            didReceive message: WKScriptMessage
+        ) {
+            guard message.name == "scrollHandler",
+                  let percent = (message.body as? NSNumber)?.doubleValue
+            else { return }
+            DispatchQueue.main.async {
+                self.onScrollChange(percent)
+            }
+        }
 
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
             hasLoadedOnce = true

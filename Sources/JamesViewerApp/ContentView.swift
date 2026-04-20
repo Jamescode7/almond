@@ -28,7 +28,8 @@ struct ContentView: View {
                     zoomPercent: viewState.zoomPercent,
                     theme: resolvedTheme,
                     searchQuery: viewState.showSearch ? viewState.searchQuery : "",
-                    webViewStore: webViewStore
+                    webViewStore: webViewStore,
+                    onScrollChange: { viewState.scrollPercent = $0 }
                 )
                 VStack(spacing: 0) {
                     if viewState.showSearch {

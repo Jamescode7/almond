@@ -56,3 +56,38 @@
 - **다음 Task 진입 여부**: **yes** (Task 2 착수)
 
 ---
+
+## Task 2 — 파일 오픈 + FSEvents 자동 리로드
+
+- **완료 시각**: 2026-04-20 22:53 (KST)
+- **커밋 범위**: `75f86c5..a14349d` (5 개 커밋)
+- **추가된 파일**:
+  - `Sources/JamesViewerApp/FileWatcher.swift` — DispatchSourceFileSystemObject 래퍼
+  - `Sources/JamesViewerApp/MissingFileBanner.swift` — 삭제/이동 오버레이 배너
+  - `Resources/mdv` (755) — CLI 엔트리 셸 스크립트
+- **변경된 파일**:
+  - `Sources/JamesViewerApp/ContentView.swift` — @State text + watcher + 드래그드롭 + 배너 통합
+  - `Sources/JamesViewerApp/MarkdownWebView.swift` — Coordinator + WKNavigationDelegate + 스크롤 보존 + 중복 렌더 억제
+- **검증 결과**:
+  - `xcodebuild Debug build`: **BUILD SUCCEEDED**
+  - `swift test`: 22/22 유지 (Task 1 순수 로직 테스트)
+  - Bundle 검증: `.app/Contents/Resources/mdv` executable bit OK (`test -x` 통과)
+  - Info.plist: `CFBundleDocumentTypes.LSItemContentTypes` 에 `net.daringfireball.markdown` + `public.markdown` 포함
+- **구현 범위**:
+  - FSEvents: `.write/.delete/.rename/.extend` 전부 감지 → `.modified` / `.deleted` / `.renamed` 이벤트로 매핑
+  - 리로드: 메인 스레드 디스패치, security-scoped resource 진입·해제
+  - 스크롤 보존: WKNavigationDelegate `didFinish` 에서 `window.scrollTo(0, Y)` 재적용. 첫 로드는 스킵.
+  - 드래그드롭: `onDrop(of: [.fileURL])` + NSWorkspace.open → CFBundleDocumentTypes 로 자기 자신에게 라우팅
+  - mdv: `exec open -a JamesViewer "$@"` — Task 3 환경설정 UI 에서 `/usr/local/bin/mdv` symlink 설치 액션 예정
+- **자율 검증 불가 → morning 확인 대상**:
+  - Finder 우클릭 "Open With" → JamesViewer 노출
+  - 윈도우에 md 파일 드래그 → 새 윈도우 오픈
+  - 외부 에디터에서 md 저장 → 자동 리로드 + 스크롤 위치 유지
+  - 파일 삭제/이동 → 배너 노출 + Dismiss
+  - Finder 에서 `.markdown` / `.mdown` / `.mkd` 확장자 인식
+- **스펙과 차이 / 확인 필요**:
+  - spec §5.3 "Open Recent 최대 10 개, Clear Menu 포함" — SwiftUI DocumentGroup 기본 동작. macOS 가 자동 관리하므로 별도 코드 없음 (morning 확인).
+  - spec §5.4 "파일이 사라졌습니다 + 재오픈 버튼" — 배너에 재오픈 버튼은 생략. 재생성/복원 여부가 즉시 반영되지 않을 수 있어 Dismiss 만 제공. v2 검토.
+- **다음 Task 진입 여부**: **yes** (Task 3 착수)
+
+---

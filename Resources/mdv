@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# mdv — JamesViewer CLI launcher
+# Installed by JamesViewer's Preferences > mdv CLI
+exec open -a JamesViewer "$@"

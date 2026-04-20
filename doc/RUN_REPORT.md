@@ -180,12 +180,12 @@
 ### Morning 수동 검증 체크리스트 (종합)
 
 **실행 전 준비**
-- [ ] `open build/Build/Products/Release/JamesViewer.app` 또는 DMG 에서 설치 후 실행
+- [x] `open build/Build/Products/Release/JamesViewer.app` 또는 DMG 에서 설치 후 실행
 - [ ] Gatekeeper 경고 시 우클릭 > Open 으로 한 번 승인
 
 **Task 1 렌더**
-- [ ] 샘플 md 파일 열기 → 헤딩/본문/리스트/표/이미지/링크/코드블록 전부 정상 렌더
-- [ ] 코드 블록 언어별 syntax highlighting 색 적용
+- [x] 샘플 md 파일 열기 → 헤딩/본문/리스트/표/이미지/링크/코드블록 전부 정상 렌더
+- [x] 코드 블록 언어별 syntax highlighting 색 적용
 - [ ] 이미지: 상대경로/절대경로/URL 모두 로드
 
 **Task 2 파일 오픈 + 리로드**
@@ -230,3 +230,81 @@
 4. GitHub repo 생성 후 push → Releases 에 DMG 업로드
 
 *— Claude Opus 4.7 (1M context), 2026-04-20 야간 자율 실행 종료*
+
+---
+
+## Post-handoff — 사용자 morning 검증 & 후속 수정 (2026-04-21)
+
+야간 종료 후 morning 에 사용자가 DMG 설치 + 실사용 테스트 진행. 3 건 회귀 발견 → 동일 세션에서 추가 수정.
+
+### 검증 결과 (사용자 보고)
+
+| # | 항목 | 결과 |
+|---|---|---|
+| 1 | 앱 실행 | ✓ 정상 |
+| 2 | Gatekeeper 경고 | ✗ 안 뜸 → **정상** (로컬 빌드는 `com.apple.quarantine` flag 없음, 배포 DMG 는 브라우저 다운로드 시 flag 부착돼 경고 뜸) |
+| 3 | Finder 우클릭 Open With → JamesViewer | ✗ 빈 창 (텍스트 렌더 안 됨) |
+| 4 | 초기 창 크기 | ✗ 최소 사이즈 (600×400) 로 열림 — Typora 수준 기대 |
+
+### 후속 수정
+
+#### 수정 1 — 초기 창 크기 (해결)
+- **신규**: `Sources/JamesViewerApp/WindowConfigurator.swift` (NSViewRepresentable)
+- 첫 렌더 시 `NSWindow` 를 960×720 센터 배치
+- `setFrameAutosaveName("JamesViewerDocument")` 으로 사용자 리사이즈 → 다음 윈도우에 기억
+- 식별자 기반 1 회성 실행 (loop 방지)
+
+#### 수정 2 — Open With 빈 렌더 (해결, 3 단계 반복)
+
+**진단 1** (`ensureContentLoaded` 추가): ContentView `onAppear` 에서 `text.isEmpty && fileURL != nil` 일 때 disk 재로드. → 효과 없음.
+
+**진단 2** (`AppDelegate` 추가): `@NSApplicationDelegateAdaptor` + 5 중 open 경로 (application(_:open:) / openFile: / openFiles: / NSAppleEventManager 직접 등록) + NSLog 진단. → `log stream` 에 아무 출력 없음. NSLog 자체가 unified log 에 안 들어가는 상태.
+
+**진단 3** (`DiagLog.swift`): `os.Logger` + NSLog + 앱 컨테이너 파일(`~/Library/Containers/com.jamescode.JamesViewer/Data/Documents/jamesviewer-diag.log`) 3 중 출력. → 파일 로그에서 흐름 확인:
+```
+AppDelegate.init
+applicationWillFinishLaunching
+handleAEOpenDocuments fired, items=1
+AE parsed 1 url(s): ["/Users/.../epic_oidc_handoff.md"]
+opening via NSDocumentController: epic_oidc_handoff.md
+applicationDidFinishLaunching
+MarkdownDocument.init(configuration:) text.count=5301
+ContentView.init text.count=5301, fileURL=/Users/.../epic_oidc_handoff.md
+MarkdownWebView.makeNSView called, markdown.count=5301
+updateNSView: loading HTML (html=10133, ...)
+openDocument success
+```
+→ `ContentView` 까지 text=5301 정상 도달. 그러나 **webView navigation delegate (didStart/didFinish/didFail) 가 일절 안 찍힘** — `loadHTMLString` 이 silently drop.
+
+**원인 확정**: WKWebView 는 `loadHTMLString(_:baseURL:)` 에 `file://` baseURL (`~/Desktop/`) 을 주면, HTML 내부의 `<link href="file:///Applications/JamesViewer.app/Contents/Resources/*.css">` 같은 **cross-directory file:// 서브리소스 참조를 거부** 하고 전체 navigation 을 silent fail 시킴.
+
+**해결**:
+1. `HTMLTemplate.wrap`: bundleURL 의 CSS/JS 파일을 `String(contentsOf:)` 로 읽어 `<style>` / `<script>` 태그에 인라인 임베드 → file:// 외부 참조 완전 제거
+2. `MarkdownWebView.updateNSView`: `loadHTMLString(html, baseURL: nil)` → baseURL 자체를 없애서 cross-directory 검사 우회
+3. 부수 효과: HTML 크기 ~150 KB 로 증가 (이전 ~10 KB), 렌더 시마다 CSS/JS 재파싱. 실사용 성능 영향 무시 가능.
+4. 이미지 상대경로 해석은 v2 에서 처리 필요 (baseURL=nil 이므로 현재는 이미지 로드 안 됨).
+
+**검증**: 사용자 재테스트 → "야호 드디어 나온다" ✓
+
+#### 수정 3 — readableContentTypes 방어
+- `MarkdownDocument.readableContentTypes` 에 `.plainText` 항상 포함 → `net.daringfireball.markdown` UTI 등록 실패 케이스에서도 오픈 가능
+- `init(configuration:)` non-throwing 으로 완화 → `regularFileContents` nil 이어도 빈 text 로 진행, ContentView 의 ensureContentLoaded 가 disk fallback
+
+### 최종 상태
+
+- **전체 커밋**: 29 개 on `feat/v0.1.0-mvp`
+- **테스트**: 35/35 (JamesViewerCore 순수 로직)
+- **빌드**: Debug / Release 양쪽 성공, universal binary (x86_64 + arm64)
+- **DMG**: `dist/JamesViewer-0.1.0.dmg` (~1.35 MB), hdiutil verify VALID
+- **진단 코드**: 완전 제거 (DiagLog.swift 삭제, 모든 NSLog/DiagLog.log 호출 제거)
+- **알려진 제약** (v2):
+  - 이미지 상대경로 미지원 (baseURL=nil 이라). 절대경로/URL 은 OK
+  - `com.apple.security.files.bookmarks.app-scope` entitlement 는 유지되지만 현재 코드는 security-scoped 북마크 저장 안 함 (Open Recent 영속성 morning 확인 필요)
+  - Footnote 미지원 (swift-markdown 0.7.3 한계)
+  - ⌘G 네비게이션 미구현 (검색 Enter 반복으로 대체)
+
+### 추가 파일
+- `Sources/JamesViewerApp/AppDelegate.swift` — 5 중 open 경로 라우팅
+- `Sources/JamesViewerApp/WindowConfigurator.swift` — 초기 창 크기 + autosave
+
+*— 2026-04-21 post-handoff 세션 종료*

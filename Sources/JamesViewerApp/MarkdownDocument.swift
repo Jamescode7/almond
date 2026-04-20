@@ -10,9 +10,7 @@ struct MarkdownDocument: FileDocument {
         if let markdown = UTType("public.markdown") {
             types.append(markdown)
         }
-        if types.isEmpty {
-            types.append(.plainText)
-        }
+        types.append(.plainText)
         return types
     }
 
@@ -25,10 +23,12 @@ struct MarkdownDocument: FileDocument {
     }
 
     init(configuration: ReadConfiguration) throws {
-        guard let data = configuration.file.regularFileContents else {
-            throw CocoaError(.fileReadCorruptFile)
+        if let data = configuration.file.regularFileContents {
+            self.text = String(data: data, encoding: .utf8) ?? ""
+        } else {
+            self.text = ""
         }
-        self.text = String(data: data, encoding: .utf8) ?? ""
+        NSLog("[JamesViewer] MarkdownDocument.init(configuration:) text.count=\(self.text.count)")
     }
 
     func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {

@@ -28,7 +28,6 @@ struct MarkdownDocument: FileDocument {
         } else {
             self.text = ""
         }
-        DiagLog.log("MarkdownDocument.init(configuration:) text.count=\(self.text.count)")
     }
 
     func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {

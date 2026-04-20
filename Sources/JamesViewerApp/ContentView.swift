@@ -14,7 +14,6 @@ struct ContentView: View {
     @StateObject private var webViewStore = WebViewStore()
 
     init(document: MarkdownDocument, fileURL: URL?) {
-        DiagLog.log("ContentView.init text.count=\(document.text.count), fileURL=\(fileURL?.path ?? "nil")")
         self.document = document
         self.fileURL = fileURL
         self._text = State(initialValue: document.text)

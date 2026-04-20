@@ -11,19 +11,11 @@ public enum HTMLTemplate {
         theme: Theme,
         bundleURL: URL
     ) -> String {
-        let markdownCSS: String
-        let highlightCSS: String
-        switch theme {
-        case .light:
-            markdownCSS = cssURL(bundleURL: bundleURL, file: "github-markdown-light.css")
-            highlightCSS = cssURL(bundleURL: bundleURL, file: "highlight-github.css")
-        case .dark:
-            markdownCSS = cssURL(bundleURL: bundleURL, file: "github-markdown-dark.css")
-            highlightCSS = cssURL(bundleURL: bundleURL, file: "highlight-atom-one-dark.css")
-        }
-
-        let highlightJS = jsURL(bundleURL: bundleURL, file: "highlight.min.js")
+        let markdownCSS = loadResource(bundleURL: bundleURL, file: theme == .dark ? "github-markdown-dark.css" : "github-markdown-light.css")
+        let highlightCSS = loadResource(bundleURL: bundleURL, file: theme == .dark ? "highlight-atom-one-dark.css" : "highlight-github.css")
+        let highlightJS = loadResource(bundleURL: bundleURL, file: "highlight.min.js")
         let themeAttr = theme == .dark ? "dark" : "light"
+        let bodyBg = theme == .dark ? "#0d1117" : "#ffffff"
 
         return """
         <!DOCTYPE html>
@@ -31,13 +23,17 @@ public enum HTMLTemplate {
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1">
-          <link rel="stylesheet" href="\(markdownCSS)">
-          <link rel="stylesheet" href="\(highlightCSS)">
+          <style>
+        \(markdownCSS)
+          </style>
+          <style>
+        \(highlightCSS)
+          </style>
           <style>
             html, body {
               margin: 0;
               padding: 0;
-              background-color: \(theme == .dark ? "#0d1117" : "#ffffff");
+              background-color: \(bodyBg);
             }
             body {
               font-size: 16px;
@@ -61,7 +57,9 @@ public enum HTMLTemplate {
           <article class="markdown-body">
         \(bodyHTML)
           </article>
-          <script src="\(highlightJS)"></script>
+          <script>
+        \(highlightJS)
+          </script>
           <script>
             if (window.hljs) { hljs.highlightAll(); }
           </script>
@@ -70,11 +68,8 @@ public enum HTMLTemplate {
         """
     }
 
-    private static func cssURL(bundleURL: URL, file: String) -> String {
-        return bundleURL.appendingPathComponent(file).absoluteString
-    }
-
-    private static func jsURL(bundleURL: URL, file: String) -> String {
-        return bundleURL.appendingPathComponent(file).absoluteString
+    private static func loadResource(bundleURL: URL, file: String) -> String {
+        let url = bundleURL.appendingPathComponent(file)
+        return (try? String(contentsOf: url, encoding: .utf8)) ?? ""
     }
 }

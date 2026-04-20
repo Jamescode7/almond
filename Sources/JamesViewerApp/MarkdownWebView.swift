@@ -7,6 +7,8 @@ struct MarkdownWebView: NSViewRepresentable {
     let fileURL: URL?
     let zoomPercent: Int
     let theme: HTMLTemplate.Theme
+    let searchQuery: String
+    let webViewStore: WebViewStore
 
     func makeCoordinator() -> Coordinator {
         Coordinator()
@@ -18,11 +20,17 @@ struct MarkdownWebView: NSViewRepresentable {
         let webView = WKWebView(frame: .zero, configuration: configuration)
         webView.setValue(false, forKey: "drawsBackground")
         webView.navigationDelegate = context.coordinator
+        webViewStore.webView = webView
         return webView
     }
 
     func updateNSView(_ webView: WKWebView, context: Context) {
         webView.pageZoom = Double(zoomPercent) / 100.0
+
+        if searchQuery != context.coordinator.lastSearchQuery {
+            context.coordinator.lastSearchQuery = searchQuery
+            runFind(query: searchQuery, webView: webView)
+        }
 
         guard let bundleURL = Bundle.main.resourceURL else { return }
         let stripped = FrontMatterStripper.strip(markdown)
@@ -55,6 +63,7 @@ struct MarkdownWebView: NSViewRepresentable {
     final class Coordinator: NSObject, WKNavigationDelegate {
         var pendingScrollY: Double?
         var lastHTML: String?
+        var lastSearchQuery: String?
         var hasLoadedOnce: Bool = false
 
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
@@ -63,5 +72,25 @@ struct MarkdownWebView: NSViewRepresentable {
             webView.evaluateJavaScript("window.scrollTo(0, \(scrollY));") { _, _ in }
             pendingScrollY = nil
         }
+    }
+
+    static func escapeJSString(_ string: String) -> String {
+        return string
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\"", with: "\\\"")
+            .replacingOccurrences(of: "\n", with: "\\n")
+            .replacingOccurrences(of: "\r", with: "\\r")
+            .replacingOccurrences(of: "\u{2028}", with: "\\u2028")
+            .replacingOccurrences(of: "\u{2029}", with: "\\u2029")
+    }
+
+    private func runFind(query: String, webView: WKWebView) {
+        guard !query.isEmpty else {
+            webView.evaluateJavaScript("getSelection().removeAllRanges();") { _, _ in }
+            return
+        }
+        let escaped = Self.escapeJSString(query)
+        let js = "window.find(\"\(escaped)\", false, false, true, false, true, false);"
+        webView.evaluateJavaScript(js) { _, _ in }
     }
 }

@@ -11,6 +11,7 @@ struct ContentView: View {
     @State private var fileMissing: Bool = false
     @State private var watcher: FileWatcher?
     @StateObject private var viewState = DocumentViewState()
+    @StateObject private var webViewStore = WebViewStore()
 
     init(document: MarkdownDocument, fileURL: URL?) {
         self.document = document
@@ -25,11 +26,22 @@ struct ContentView: View {
                     markdown: text,
                     fileURL: fileURL,
                     zoomPercent: viewState.zoomPercent,
-                    theme: resolvedTheme
+                    theme: resolvedTheme,
+                    searchQuery: viewState.showSearch ? viewState.searchQuery : "",
+                    webViewStore: webViewStore
                 )
-                if fileMissing {
-                    MissingFileBanner(fileURL: fileURL) {
-                        fileMissing = false
+                VStack(spacing: 0) {
+                    if viewState.showSearch {
+                        SearchBar(
+                            query: $viewState.searchQuery,
+                            onSubmit: { webViewStore.findNext(query: viewState.searchQuery) },
+                            onDismiss: { closeSearch() }
+                        )
+                    }
+                    if fileMissing {
+                        MissingFileBanner(fileURL: fileURL) {
+                            fileMissing = false
+                        }
                     }
                 }
             }
@@ -47,49 +59,49 @@ struct ContentView: View {
         .onDisappear { watcher?.stop() }
     }
 
-    private var keyboardShortcuts: some View {
-        ZStack {
-            Button("", action: viewState.zoomIn)
-                .keyboardShortcut("=", modifiers: .command)
-                .hidden()
-            Button("", action: viewState.zoomIn)
-                .keyboardShortcut("+", modifiers: .command)
-                .hidden()
-            Button("", action: viewState.zoomOut)
-                .keyboardShortcut("-", modifiers: .command)
-                .hidden()
-            Button("", action: viewState.zoomReset)
-                .keyboardShortcut("0", modifiers: .command)
-                .hidden()
-            Button("", action: reloadFromDisk)
-                .keyboardShortcut("r", modifiers: .command)
-                .hidden()
-            Button("", action: viewState.cycleAppearance)
-                .keyboardShortcut("d", modifiers: [.shift, .command])
-                .hidden()
-        }
-        .frame(width: 0, height: 0)
-        .allowsHitTesting(false)
-    }
-
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         ToolbarItemGroup(placement: .primaryAction) {
             Button(action: viewState.cycleAppearance) {
                 Image(systemName: viewState.appearanceOverride.symbolName)
             }
-            .help("Cycle appearance (System / Light / Dark)")
+            .help("Cycle appearance (⇧⌘D)")
 
             Button(action: viewState.zoomOut) {
                 Image(systemName: "minus.magnifyingglass")
             }
-            .help("Zoom out")
+            .help("Zoom out (⌘-)")
 
             Button(action: viewState.zoomIn) {
                 Image(systemName: "plus.magnifyingglass")
             }
-            .help("Zoom in")
+            .help("Zoom in (⌘=)")
         }
+    }
+
+    private var keyboardShortcuts: some View {
+        ZStack {
+            Button("", action: viewState.zoomIn)
+                .keyboardShortcut("=", modifiers: .command).hidden()
+            Button("", action: viewState.zoomIn)
+                .keyboardShortcut("+", modifiers: .command).hidden()
+            Button("", action: viewState.zoomOut)
+                .keyboardShortcut("-", modifiers: .command).hidden()
+            Button("", action: viewState.zoomReset)
+                .keyboardShortcut("0", modifiers: .command).hidden()
+            Button("", action: reloadFromDisk)
+                .keyboardShortcut("r", modifiers: .command).hidden()
+            Button("", action: viewState.cycleAppearance)
+                .keyboardShortcut("d", modifiers: [.shift, .command]).hidden()
+            Button("", action: openSearch)
+                .keyboardShortcut("f", modifiers: .command).hidden()
+            if viewState.showSearch {
+                Button("", action: closeSearch)
+                    .keyboardShortcut(.escape, modifiers: []).hidden()
+            }
+        }
+        .frame(width: 0, height: 0)
+        .allowsHitTesting(false)
     }
 
     private var resolvedTheme: HTMLTemplate.Theme {
@@ -99,6 +111,15 @@ struct ContentView: View {
         case .system:
             return NSApp.effectiveAppearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua ? .dark : .light
         }
+    }
+
+    private func openSearch() {
+        viewState.showSearch = true
+    }
+
+    private func closeSearch() {
+        viewState.showSearch = false
+        viewState.searchQuery = ""
     }
 
     private func startWatching() {

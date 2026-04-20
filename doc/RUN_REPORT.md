@@ -139,3 +139,94 @@
 - **다음 Task 진입 여부**: **yes** (Task 4 착수)
 
 ---
+
+## Task 4 — Release 빌드 + Unsigned DMG + README
+
+- **완료 시각**: 2026-04-20 23:08 (KST)
+- **커밋 범위**: `276bd18..8a12289` (2 개 커밋)
+- **추가된 파일**:
+  - `scripts/build-release.sh` (755) — xcodegen + xcodebuild Release
+  - `scripts/make-dmg.sh` (755) — create-dmg + --skip-jenkins
+  - `scripts/dmg-contents/How to open.txt` — Gatekeeper 우회 안내 (EN)
+  - `README.md` — 프로젝트 소개 + 다운로드 + 빌드 + 아키텍처 (전면 재작성)
+  - `LICENSE` — MIT 전문
+- **검증 결과**:
+  - `./scripts/build-release.sh`: **BUILD SUCCEEDED** — universal binary (x86_64+arm64)
+  - `./scripts/make-dmg.sh`: **dist/JamesViewer-0.1.0.dmg** 생성 (1,296,941 bytes ≈ 1.24 MB)
+  - `hdiutil verify`: 체크섬 VALID
+  - DMG 마운트 검증: `JamesViewer.app` + `Applications` symlink + `How to open.txt` 3 요소 포함
+  - `swift test`: 32/32 유지
+  - `git status`: clean
+- **스펙과 차이 / 확인 필요**:
+  - create-dmg `--skip-jenkins`: sandbox/non-GUI 환경에서 Finder AppleScript 가 timeout 되어 추가. DMG 아이콘 배치 등 Finder 미화 단계는 스킵됨. 기능상 차이 없음 (drag-drop 영역은 create-dmg 가 심볼릭 링크로 처리).
+  - 코드 서명: `CODE_SIGN_IDENTITY="-"` ad-hoc 만. v2 에서 Apple Developer 서명 + notarization 전환.
+- **자율 검증 불가 → morning 확인 대상**:
+  - DMG 더블클릭 → 마운트 → 드래그드롭 UX
+  - 첫 실행 시 Gatekeeper 경고 → 우클릭 Open 흐름
+  - 설치 후 더블클릭 실행 지속성
+- **다음 Task 진입 여부**: **N/A** — 전 Task 완료
+
+---
+
+## 모든 Task 완료, 추가 작업 없이 정지합니다.
+
+### 요약
+- 전체 커밋 수: **23 개** (`feat/v0.1.0-mvp`)
+- 총 테스트: **32 / 32 통과** (JamesViewerCore 순수 Swift 테스트)
+- 빌드: Debug / Release 양쪽 성공, universal binary
+- DMG: `dist/JamesViewer-0.1.0.dmg` (1.24 MB) — unsigned, Gatekeeper 경고 우회 안내 동봉
+- 최종 working tree: clean
+
+### Morning 수동 검증 체크리스트 (종합)
+
+**실행 전 준비**
+- [ ] `open build/Build/Products/Release/JamesViewer.app` 또는 DMG 에서 설치 후 실행
+- [ ] Gatekeeper 경고 시 우클릭 > Open 으로 한 번 승인
+
+**Task 1 렌더**
+- [ ] 샘플 md 파일 열기 → 헤딩/본문/리스트/표/이미지/링크/코드블록 전부 정상 렌더
+- [ ] 코드 블록 언어별 syntax highlighting 색 적용
+- [ ] 이미지: 상대경로/절대경로/URL 모두 로드
+
+**Task 2 파일 오픈 + 리로드**
+- [ ] Finder 우클릭 "Open With" → JamesViewer 노출
+- [ ] 윈도우에 md 파일 드래그드롭 → 새 윈도우 오픈
+- [ ] `.markdown` / `.mdown` / `.mkd` 확장자도 인식
+- [ ] 외부 에디터에서 md 저장 → 자동 리로드 + 스크롤 위치 유지
+- [ ] 파일 삭제 → "File is missing" 배너 노출 + Dismiss 동작
+- [ ] File > Open Recent 에 최근 열람 파일 기록
+
+**Task 3 UI 크롬**
+- [ ] ⌘+ / ⌘= / ⌘- / ⌘0 줌 동작 (80-200% 10% step)
+- [ ] 툴바 줌 버튼 (−/+) 클릭 동작
+- [ ] ⇧⌘D 3-way 다크 토글 — 시각적 CSS 전환 + 깜빡임 없음
+- [ ] 툴바 appearance 아이콘 (🌗/☀️/🌙) 전환
+- [ ] 상태바 word / char / scroll% 실시간 업데이트
+- [ ] ⌘, 환경설정 창 → 3 항목 UI (Appearance / Zoom / mdv)
+- [ ] Preferences 에서 Default appearance 변경 → 새 윈도우에 반영
+- [ ] mdv Install 버튼 → alert (샌드박스 실패 시 Terminal 명령 클립보드 복사)
+- [ ] Terminal 에서 `/usr/local/bin/mdv sample.md` 실행 → 앱에서 오픈
+- [ ] ⌘R 수동 리로드
+- [ ] ⌘F 검색바 노출 + TextField 자동 포커스
+- [ ] 검색어 입력 → 첫 매치 하이라이트 (WKWebView 네이티브 selection)
+- [ ] Enter 반복 → 다음 매치로 이동
+- [ ] ESC 검색바 닫기 + 선택 해제
+
+**Task 4 배포**
+- [ ] DMG 마운트 → 드래그드롭 레이아웃 (세부 시각은 skip-jenkins 로 단순)
+- [ ] JamesViewer.app → Applications 드래그
+- [ ] 처음 실행 시 Gatekeeper 경고 → 우클릭 Open
+- [ ] 두번째 실행은 더블클릭으로 바로 실행
+
+### 사용자 확인 필요 (optional)
+- GitHub repo URL (README 에 placeholder `seunghwasong/jamesviewer` 사용 — 실제 repo 생성 시 치환)
+- 아이콘 디자인 (spec §12 — 별도 세션 대기)
+- Apple Developer 계정 취득 시 v0.2.0 에서 서명 + notarization 전환
+
+### 다음 권장 동작 (morning)
+1. `doc/RUN_REPORT.md` 전체 리뷰
+2. 위 체크리스트 수동 검증
+3. 문제 없으면 `git merge feat/v0.1.0-mvp` → `main`
+4. GitHub repo 생성 후 push → Releases 에 DMG 업로드
+
+*— Claude Opus 4.7 (1M context), 2026-04-20 야간 자율 실행 종료*

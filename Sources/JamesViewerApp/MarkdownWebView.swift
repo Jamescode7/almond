@@ -5,6 +5,8 @@ import JamesViewerCore
 struct MarkdownWebView: NSViewRepresentable {
     let markdown: String
     let fileURL: URL?
+    let zoomPercent: Int
+    let theme: HTMLTemplate.Theme
 
     func makeCoordinator() -> Coordinator {
         Coordinator()
@@ -25,8 +27,8 @@ struct MarkdownWebView: NSViewRepresentable {
         let bodyHTML = MarkdownRenderer.render(stripped)
         let html = HTMLTemplate.wrap(
             bodyHTML: bodyHTML,
-            theme: .light,
-            zoomPercent: 100,
+            theme: theme,
+            zoomPercent: zoomPercent,
             bundleURL: bundleURL
         )
 

@@ -28,7 +28,7 @@ struct MarkdownDocument: FileDocument {
         } else {
             self.text = ""
         }
-        NSLog("[JamesViewer] MarkdownDocument.init(configuration:) text.count=\(self.text.count)")
+        DiagLog.log("MarkdownDocument.init(configuration:) text.count=\(self.text.count)")
     }
 
     func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {

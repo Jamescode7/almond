@@ -4,11 +4,11 @@ import Foundation
 final class AppDelegate: NSObject, NSApplicationDelegate {
     override init() {
         super.init()
-        NSLog("[JamesViewer] AppDelegate.init")
+        DiagLog.log("AppDelegate.init (log path: \(DiagLog.logPath))")
     }
 
     func applicationWillFinishLaunching(_ notification: Notification) {
-        NSLog("[JamesViewer] applicationWillFinishLaunching — registering AEEventManager odoc handler")
+        DiagLog.log("applicationWillFinishLaunching — registering AEEventManager odoc handler")
         NSAppleEventManager.shared().setEventHandler(
             self,
             andSelector: #selector(handleAEOpenDocuments(_:withReplyEvent:)),
@@ -18,35 +18,36 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        NSLog("[JamesViewer] applicationDidFinishLaunching")
+        DiagLog.log("applicationDidFinishLaunching (bundleID=\(Bundle.main.bundleIdentifier ?? "nil"))")
     }
 
     func applicationShouldOpenUntitledFile(_ sender: NSApplication) -> Bool {
-        NSLog("[JamesViewer] applicationShouldOpenUntitledFile → false")
+        DiagLog.log("applicationShouldOpenUntitledFile → false")
         return false
     }
 
     func application(_ sender: NSApplication, open urls: [URL]) {
-        NSLog("[JamesViewer] application(_:open:) urls=\(urls.map { $0.path })")
+        DiagLog.log("application(_:open:) urls=\(urls.map { $0.path })")
         openURLs(urls)
     }
 
     func application(_ sender: NSApplication, openFile filename: String) -> Bool {
-        NSLog("[JamesViewer] application(_:openFile:) \(filename)")
+        DiagLog.log("application(_:openFile:) \(filename)")
         openURLs([URL(fileURLWithPath: filename)])
         return true
     }
 
     func application(_ sender: NSApplication, openFiles filenames: [String]) {
-        NSLog("[JamesViewer] application(_:openFiles:) \(filenames)")
+        DiagLog.log("application(_:openFiles:) \(filenames)")
         openURLs(filenames.map { URL(fileURLWithPath: $0) })
         sender.reply(toOpenOrPrint: .success)
     }
 
     @objc func handleAEOpenDocuments(_ event: NSAppleEventDescriptor, withReplyEvent reply: NSAppleEventDescriptor) {
-        NSLog("[JamesViewer] handleAEOpenDocuments fired, items=\(event.paramDescriptor(forKeyword: AEKeyword(keyDirectObject))?.numberOfItems ?? 0)")
+        let directObjectCount = event.paramDescriptor(forKeyword: AEKeyword(keyDirectObject))?.numberOfItems ?? 0
+        DiagLog.log("handleAEOpenDocuments fired, items=\(directObjectCount)")
         guard let listDescriptor = event.paramDescriptor(forKeyword: AEKeyword(keyDirectObject)) else {
-            NSLog("[JamesViewer] AE: no direct object")
+            DiagLog.log("AE: no direct object")
             return
         }
         var urls: [URL] = []
@@ -63,7 +64,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
         }
-        NSLog("[JamesViewer] AE parsed \(urls.count) url(s)")
+        DiagLog.log("AE parsed \(urls.count) url(s): \(urls.map { $0.path })")
         openURLs(urls)
     }
 
@@ -87,21 +88,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 doc.fileURL?.standardizedFileURL == url.standardizedFileURL
             }
             if alreadyOpen {
-                NSLog("[JamesViewer] already open: \(url.lastPathComponent)")
+                DiagLog.log("already open: \(url.lastPathComponent)")
                 if let window = NSDocumentController.shared.documents.first(where: { $0.fileURL?.standardizedFileURL == url.standardizedFileURL })?.windowControllers.first?.window {
                     window.makeKeyAndOrderFront(nil)
                 }
                 continue
             }
-            NSLog("[JamesViewer] opening via NSDocumentController: \(url.lastPathComponent)")
+            DiagLog.log("opening via NSDocumentController: \(url.lastPathComponent)")
             NSDocumentController.shared.openDocument(
                 withContentsOf: url,
                 display: true
             ) { doc, alreadyOpened, error in
                 if let error = error {
-                    NSLog("[JamesViewer] openDocument error: \(error.localizedDescription)")
+                    DiagLog.log("openDocument error: \(error.localizedDescription)")
                 } else {
-                    NSLog("[JamesViewer] openDocument success, alreadyOpened=\(alreadyOpened), doc=\(String(describing: doc))")
+                    DiagLog.log("openDocument success, alreadyOpened=\(alreadyOpened), doc=\(String(describing: doc))")
                 }
             }
         }

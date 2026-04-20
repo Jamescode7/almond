@@ -2,8 +2,8 @@ import SwiftUI
 import Combine
 
 final class DocumentViewState: ObservableObject {
-    @Published var zoomPercent: Int = 100
-    @Published var appearanceOverride: AppearanceMode = .system
+    @Published var zoomPercent: Int
+    @Published var appearanceOverride: AppearanceMode
     @Published var scrollPercent: Double = 0
     @Published var showSearch: Bool = false
     @Published var searchQuery: String = ""
@@ -11,6 +11,17 @@ final class DocumentViewState: ObservableObject {
     private static let zoomStep: Int = 10
     private static let zoomMin: Int = 80
     private static let zoomMax: Int = 200
+
+    init() {
+        let defaults = UserDefaults.standard
+
+        let defaultAppearance = defaults.string(forKey: "defaultAppearance")
+            .flatMap(AppearanceMode.init(rawValue:)) ?? .system
+        self.appearanceOverride = defaultAppearance
+
+        let savedZoom = defaults.integer(forKey: "defaultZoom")
+        self.zoomPercent = savedZoom == 0 ? 100 : max(Self.zoomMin, min(Self.zoomMax, savedZoom))
+    }
 
     func zoomIn() {
         zoomPercent = min(Self.zoomMax, zoomPercent + Self.zoomStep)

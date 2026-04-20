@@ -9,5 +9,9 @@ struct JamesViewerApp: App {
                 fileURL: configuration.fileURL
             )
         }
+
+        Settings {
+            SettingsView()
+        }
     }
 }

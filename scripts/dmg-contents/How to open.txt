@@ -1,0 +1,24 @@
+JamesViewer — first-run instructions
+
+The first time you open JamesViewer, macOS will warn that the app is from
+an "unidentified developer". This is because v0.1.0 is not yet signed with
+an Apple Developer certificate.
+
+To bypass the warning (one time only):
+
+  1. Drag JamesViewer.app into your Applications folder.
+  2. In Finder, right-click (or Control-click) JamesViewer.app and
+     choose "Open" from the context menu.
+  3. In the dialog that appears, click "Open".
+
+After this one-time approval, double-clicking the app will launch it
+normally — macOS remembers your decision.
+
+Why the warning?
+  JamesViewer is free and open-source. v0.1.0 ships unsigned because the
+  Apple Developer Program ($99/year) is not yet registered. Code signing
+  and notarization will be introduced in a later release.
+
+Links
+  Source:   https://github.com/seunghwasong/jamesviewer
+  License:  MIT

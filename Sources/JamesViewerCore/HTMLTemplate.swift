@@ -75,10 +75,10 @@ public enum HTMLTemplate {
     }
 
     private static func cssURL(bundleURL: URL, file: String) -> String {
-        return bundleURL.appendingPathComponent("css").appendingPathComponent(file).absoluteString
+        return bundleURL.appendingPathComponent(file).absoluteString
     }
 
     private static func jsURL(bundleURL: URL, file: String) -> String {
-        return bundleURL.appendingPathComponent("js").appendingPathComponent(file).absoluteString
+        return bundleURL.appendingPathComponent(file).absoluteString
     }
 }

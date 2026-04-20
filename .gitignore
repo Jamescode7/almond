@@ -8,3 +8,7 @@ xcuserdata/
 DerivedData/
 .build/
 Package.resolved
+
+# XcodeGen 생성 plist (project.yml 이 단일 권위)
+Sources/JamesViewerApp/Info.plist
+Sources/JamesViewerApp/JamesViewer.entitlements

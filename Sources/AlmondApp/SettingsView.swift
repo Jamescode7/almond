@@ -30,10 +30,10 @@ struct SettingsView: View {
             Section {
                 MDVInstallerView()
             } header: {
-                Text("mdv CLI")
+                Text("almond CLI")
                     .font(.headline)
             } footer: {
-                Text("Creates a symlink at /usr/local/bin/mdv so you can open markdown files from Terminal: mdv file.md")
+                Text("Creates a symlink at /usr/local/bin/almond so you can open markdown files from Terminal: almond file.md")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

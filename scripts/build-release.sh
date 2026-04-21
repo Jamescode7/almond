@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# build-release.sh — Build JamesViewer.app in Release configuration (unsigned)
+# build-release.sh — Build Almond.app in Release configuration (unsigned)
 #
 # Prerequisites: Xcode 15+, xcodegen
-# Output: build/Build/Products/Release/JamesViewer.app
+# Output: build/Build/Products/Release/Almond.app
 
 set -euo pipefail
 
@@ -18,8 +18,8 @@ xcodegen generate
 
 echo "==> Building Release"
 xcodebuild \
-    -project JamesViewer.xcodeproj \
-    -scheme JamesViewer \
+    -project Almond.xcodeproj \
+    -scheme Almond \
     -configuration Release \
     -derivedDataPath ./build \
     -destination 'generic/platform=macOS' \
@@ -28,11 +28,11 @@ xcodebuild \
     CODE_SIGNING_ALLOWED=NO \
     clean build
 
-APP_PATH="build/Build/Products/Release/JamesViewer.app"
+APP_PATH="build/Build/Products/Release/Almond.app"
 if [[ ! -d "$APP_PATH" ]]; then
     echo "ERROR: build failed — $APP_PATH not produced" >&2
     exit 1
 fi
 
 echo "==> Build complete: $APP_PATH"
-file "$APP_PATH/Contents/MacOS/JamesViewer" | head -1
+file "$APP_PATH/Contents/MacOS/Almond" | head -1

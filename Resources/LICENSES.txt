@@ -1,4 +1,4 @@
-JamesViewer bundles the following third-party assets for offline markdown rendering:
+Almond bundles the following third-party assets for offline markdown rendering:
 
 1. github-markdown-css v5.5.1
    License: MIT
@@ -16,4 +16,4 @@ JamesViewer bundles the following third-party assets for offline markdown render
      - Resources/css/highlight-atom-one-dark.css (Atom One Dark theme)
 
 Full license texts are available in the respective upstream repositories.
-These assets are bundled to keep JamesViewer fully offline — no runtime CDN calls.
+These assets are bundled to keep Almond fully offline — no runtime CDN calls.

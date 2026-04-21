@@ -22,12 +22,12 @@ struct WindowConfigurator: NSViewRepresentable {
         guard let window = view.window else { return }
         guard !window.isSheet else { return }
 
-        if window.identifier?.rawValue == "com.jamescode.JamesViewer.configured" {
+        if window.identifier?.rawValue == "com.jamescode.Almond.configured" {
             return
         }
-        window.identifier = NSUserInterfaceItemIdentifier("com.jamescode.JamesViewer.configured")
+        window.identifier = NSUserInterfaceItemIdentifier("com.jamescode.Almond.configured")
 
-        let frameAutosaveName = "JamesViewerDocument"
+        let frameAutosaveName = "AlmondDocument"
         let hadStoredFrame = window.setFrameAutosaveName(frameAutosaveName)
 
         if !hadStoredFrame {

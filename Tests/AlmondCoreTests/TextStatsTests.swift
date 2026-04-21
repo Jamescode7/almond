@@ -1,5 +1,5 @@
 import XCTest
-@testable import JamesViewerCore
+@testable import AlmondCore
 
 final class TextStatsTests: XCTestCase {
     func testEnglishWordCount() {

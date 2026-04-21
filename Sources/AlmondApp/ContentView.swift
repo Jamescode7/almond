@@ -1,7 +1,7 @@
 import SwiftUI
 import AppKit
 import UniformTypeIdentifiers
-import JamesViewerCore
+import AlmondCore
 
 struct ContentView: View {
     let document: MarkdownDocument

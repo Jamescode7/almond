@@ -2,24 +2,24 @@
 import PackageDescription
 
 let package = Package(
-    name: "JamesViewerCore",
+    name: "AlmondCore",
     platforms: [.macOS(.v13)],
     products: [
-        .library(name: "JamesViewerCore", targets: ["JamesViewerCore"]),
+        .library(name: "AlmondCore", targets: ["AlmondCore"]),
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-markdown.git", from: "0.3.0"),
     ],
     targets: [
         .target(
-            name: "JamesViewerCore",
+            name: "AlmondCore",
             dependencies: [.product(name: "Markdown", package: "swift-markdown")],
-            path: "Sources/JamesViewerCore"
+            path: "Sources/AlmondCore"
         ),
         .testTarget(
-            name: "JamesViewerCoreTests",
-            dependencies: ["JamesViewerCore"],
-            path: "Tests/JamesViewerCoreTests"
+            name: "AlmondCoreTests",
+            dependencies: ["AlmondCore"],
+            path: "Tests/AlmondCoreTests"
         ),
     ]
 )

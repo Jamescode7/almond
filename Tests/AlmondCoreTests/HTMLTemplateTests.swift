@@ -1,8 +1,8 @@
 import XCTest
-@testable import JamesViewerCore
+@testable import AlmondCore
 
 final class HTMLTemplateTests: XCTestCase {
-    private let bundleURL = URL(fileURLWithPath: "/tmp/jamesviewer-test-bundle", isDirectory: true)
+    private let bundleURL = URL(fileURLWithPath: "/tmp/almond-test-bundle", isDirectory: true)
 
     func testLightThemeDataAttr() {
         let html = HTMLTemplate.wrap(bodyHTML: "<p>hi</p>", theme: .light, bundleURL: bundleURL)

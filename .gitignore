@@ -10,8 +10,9 @@ DerivedData/
 Package.resolved
 
 # XcodeGen 생성 plist (project.yml 이 단일 권위)
-Sources/JamesViewerApp/Info.plist
-Sources/JamesViewerApp/JamesViewer.entitlements
+Sources/AlmondApp/Info.plist
+Sources/AlmondApp/Almond.entitlements
 
 # 세션 노트 · 스펙 문서 (로컬 전용)
-doc/
+doc/*
+!doc/AppIcon-master.png

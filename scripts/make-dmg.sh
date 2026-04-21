@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# make-dmg.sh — Package JamesViewer.app into an unsigned DMG
+# make-dmg.sh — Package Almond.app into an unsigned DMG
 #
 # Prerequisites: scripts/build-release.sh completed successfully, create-dmg installed
-# Output: dist/JamesViewer-<version>.dmg
+# Output: dist/Almond-<version>.dmg
 
 set -euo pipefail
 
@@ -14,7 +14,7 @@ if ! command -v create-dmg >/dev/null 2>&1; then
     exit 2
 fi
 
-APP_PATH="build/Build/Products/Release/JamesViewer.app"
+APP_PATH="build/Build/Products/Release/Almond.app"
 if [[ ! -d "$APP_PATH" ]]; then
     echo "ERROR: $APP_PATH not found. Run ./scripts/build-release.sh first." >&2
     exit 1
@@ -27,10 +27,10 @@ if [[ -z "$VERSION" ]]; then
 fi
 
 mkdir -p dist
-DMG_PATH="dist/JamesViewer-${VERSION}.dmg"
+DMG_PATH="dist/Almond-${VERSION}.dmg"
 rm -f "$DMG_PATH"
 
-STAGING=$(mktemp -d -t jamesviewer-dmg)
+STAGING=$(mktemp -d -t almond-dmg)
 trap 'rm -rf "$STAGING"' EXIT
 
 cp -R "$APP_PATH" "$STAGING/"
@@ -38,10 +38,10 @@ cp scripts/dmg-contents/How\ to\ open.txt "$STAGING/"
 
 echo "==> Creating DMG: $DMG_PATH"
 create-dmg \
-    --volname "JamesViewer ${VERSION}" \
+    --volname "Almond ${VERSION}" \
     --window-size 540 360 \
     --icon-size 96 \
-    --icon "JamesViewer.app" 140 170 \
+    --icon "Almond.app" 140 170 \
     --app-drop-link 400 170 \
     --no-internet-enable \
     --skip-jenkins \

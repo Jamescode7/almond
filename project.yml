@@ -1,4 +1,4 @@
-name: JamesViewer
+name: Almond
 options:
   bundleIdPrefix: com.jamescode
   deploymentTarget:
@@ -11,36 +11,37 @@ packages:
   SwiftMarkdown:
     url: https://github.com/apple/swift-markdown.git
     from: 0.3.0
-  JamesViewerCore:
+  AlmondCore:
     path: .
 
 targets:
-  JamesViewer:
+  Almond:
     type: application
     platform: macOS
     sources:
-      - path: Sources/JamesViewerApp
+      - path: Sources/AlmondApp
         excludes:
           - "Info.plist"
-          - "JamesViewer.entitlements"
+          - "Almond.entitlements"
       - path: Resources
         buildPhase: resources
         excludes:
           - "fixtures/**"
     info:
-      path: Sources/JamesViewerApp/Info.plist
+      path: Sources/AlmondApp/Info.plist
       properties:
         CFBundleDevelopmentRegion: en
         CFBundleExecutable: $(EXECUTABLE_NAME)
+        CFBundleIconFile: AppIcon
         CFBundleIdentifier: $(PRODUCT_BUNDLE_IDENTIFIER)
         CFBundleInfoDictionaryVersion: "6.0"
-        CFBundleName: JamesViewer
-        CFBundleDisplayName: JamesViewer
+        CFBundleName: Almond
+        CFBundleDisplayName: Almond
         CFBundlePackageType: APPL
         CFBundleShortVersionString: "0.1.0"
         CFBundleVersion: "1"
         LSMinimumSystemVersion: "13.0"
-        NSHumanReadableCopyright: "Copyright © 2026 James. MIT License."
+        NSHumanReadableCopyright: "Copyright © 2026 Jamescode7. MIT License."
         LSApplicationCategoryType: public.app-category.productivity
         NSPrincipalClass: NSApplication
         NSSupportsAutomaticTermination: true
@@ -68,15 +69,15 @@ targets:
               public.mime-type:
                 - text/markdown
     entitlements:
-      path: Sources/JamesViewerApp/JamesViewer.entitlements
+      path: Sources/AlmondApp/Almond.entitlements
       properties:
         com.apple.security.app-sandbox: true
         com.apple.security.files.user-selected.read-only: true
         com.apple.security.files.bookmarks.app-scope: true
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.jamescode.JamesViewer
-        PRODUCT_NAME: JamesViewer
+        PRODUCT_BUNDLE_IDENTIFIER: com.jamescode.Almond
+        PRODUCT_NAME: Almond
         MARKETING_VERSION: "0.1.0"
         CURRENT_PROJECT_VERSION: "1"
         MACOSX_DEPLOYMENT_TARGET: "13.0"
@@ -88,5 +89,5 @@ targets:
     dependencies:
       - package: SwiftMarkdown
         product: Markdown
-      - package: JamesViewerCore
-        product: JamesViewerCore
+      - package: AlmondCore
+        product: AlmondCore

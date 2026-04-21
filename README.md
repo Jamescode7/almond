@@ -1,4 +1,4 @@
-# JamesViewer
+# Almond
 
 **Minimal markdown viewer for macOS.** Typora-style WYSIWYG reading, no editing.
 
@@ -10,7 +10,7 @@ Open a `.md` file, see rendered markdown. That's it. No live editing, no subscri
 
 ---
 
-## Why JamesViewer?
+## Why Almond?
 
 - **Free & open-source.** Drop-in alternative to Typora (€14.99) or Marked 2 ($13.99) when all you need is a viewer.
 - **Focused.** Reader-only UI — no mode toggles, no source pane, no clutter.
@@ -23,9 +23,9 @@ Open a `.md` file, see rendered markdown. That's it. No live editing, no subscri
 
 > v0.1.0 ships **unsigned** (no Apple Developer Program yet). macOS will show a Gatekeeper warning on first launch — see below.
 
-1. Download the latest DMG from [Releases](https://github.com/seunghwasong/jamesviewer/releases/latest).
-2. Open the DMG and drag **JamesViewer.app** into your Applications folder.
-3. In Finder, **right-click** (or Control-click) JamesViewer.app and choose **Open**.
+1. Download the latest DMG from [Releases](https://github.com/Jamescode7/almond/releases/latest).
+2. Open the DMG and drag **Almond.app** into your Applications folder.
+3. In Finder, **right-click** (or Control-click) Almond.app and choose **Open**.
 4. In the dialog, click **Open**. macOS will remember this decision.
 
 After the one-time approval, double-click the app as usual.
@@ -55,7 +55,7 @@ UI:
 - Auto-reload on external edits (FSEvents), scroll position preserved
 - Word / character count + scroll percent in the status bar
 - File drag-drop onto the window
-- `mdv <file.md>` command-line launcher (install from Preferences)
+- `almond <file.md>` command-line launcher (install from Preferences)
 
 ---
 
@@ -101,34 +101,34 @@ See [spec §13](doc/app_005_md_viewer.md) for the full v2 roadmap.
 
 ```bash
 # Clone + generate project
-git clone https://github.com/seunghwasong/jamesviewer.git
-cd jamesviewer
+git clone https://github.com/Jamescode7/almond.git
+cd almond
 xcodegen generate
 
 # Run tests (pure-logic core)
 swift test
 
 # Debug build (ad-hoc signed)
-xcodebuild -project JamesViewer.xcodeproj -scheme JamesViewer -configuration Debug build
+xcodebuild -project Almond.xcodeproj -scheme Almond -configuration Debug build
 
 # Release build + DMG
 ./scripts/build-release.sh
 ./scripts/make-dmg.sh
-# → dist/JamesViewer-0.1.0.dmg
+# → dist/Almond-0.1.0.dmg
 ```
 
-`project.yml` is the single source of truth. `JamesViewer.xcodeproj`, `Info.plist`, and the `.entitlements` file are regenerated from it.
+`project.yml` is the single source of truth. `Almond.xcodeproj`, `Info.plist`, and the `.entitlements` file are regenerated from it.
 
 ---
 
 ## Architecture
 
-- **`JamesViewerCore`** (`Sources/JamesViewerCore/`) — pure Swift, no AppKit. Markdown → HTML pipeline. Testable in isolation via `swift test`.
+- **`AlmondCore`** (`Sources/AlmondCore/`) — pure Swift, no AppKit. Markdown → HTML pipeline. Testable in isolation via `swift test`.
   - `MarkdownRenderer` — `MarkupVisitor` over Apple [swift-markdown](https://github.com/apple/swift-markdown)
   - `HTMLTemplate` — wraps body HTML with bundled CSS/JS
   - `FrontMatterStripper` — removes leading YAML block
   - `TextStats` — word / character count
-- **`JamesViewerApp`** (`Sources/JamesViewerApp/`) — SwiftUI macOS app.
+- **`AlmondApp`** (`Sources/AlmondApp/`) — SwiftUI macOS app.
   - `DocumentGroup(viewing:)` handles Open / Open Recent / drag-to-icon
   - `WKWebView` renders HTML with `file://` base URL for image resolution
   - `FileWatcher` (DispatchSourceFileSystemObject) for auto-reload

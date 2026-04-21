@@ -1,6 +1,6 @@
 import SwiftUI
 import WebKit
-import JamesViewerCore
+import AlmondCore
 
 struct MarkdownWebView: NSViewRepresentable {
     let markdown: String

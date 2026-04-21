@@ -2,15 +2,15 @@ import AppKit
 import Foundation
 
 enum CLIInstaller {
-    static let symlinkPath = "/usr/local/bin/mdv"
+    static let symlinkPath = "/usr/local/bin/almond"
 
     static var bundledScriptURL: URL? {
-        Bundle.main.url(forResource: "mdv", withExtension: nil)
+        Bundle.main.url(forResource: "almond", withExtension: nil)
     }
 
     static func install() {
         guard let source = bundledScriptURL else {
-            showAlert(title: "Install failed", message: "Bundled mdv script not found.")
+            showAlert(title: "Install failed", message: "Bundled almond script not found.")
             return
         }
 
@@ -20,13 +20,13 @@ enum CLIInstaller {
                 try FileManager.default.removeItem(at: url)
             }
             try FileManager.default.createSymbolicLink(at: url, withDestinationURL: source)
-            showAlert(title: "Installed", message: "\(symlinkPath) → \(source.path)\n\nTry it from Terminal: mdv path/to/file.md")
+            showAlert(title: "Installed", message: "\(symlinkPath) → \(source.path)\n\nTry it from Terminal: almond path/to/file.md")
         } catch {
             copyManualCommandToPasteboard(source: source)
             showAlert(
                 title: "Automatic install failed",
                 message: """
-                JamesViewer runs in App Sandbox and cannot write to /usr/local/bin.
+                Almond runs in App Sandbox and cannot write to /usr/local/bin.
 
                 Open Terminal and run this command (it has been copied to your clipboard):
 
@@ -52,7 +52,7 @@ enum CLIInstaller {
             showAlert(
                 title: "Automatic remove failed",
                 message: """
-                JamesViewer runs in App Sandbox and cannot modify /usr/local/bin.
+                Almond runs in App Sandbox and cannot modify /usr/local/bin.
 
                 Open Terminal and run this command (it has been copied to your clipboard):
 

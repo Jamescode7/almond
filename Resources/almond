@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# almond — Almond CLI launcher
+# Installed by Almond's Preferences > almond CLI
+exec open -a Almond "$@"

@@ -1,7 +1,7 @@
 Almond — first-run instructions
 
 The first time you open Almond, macOS will warn that the app is from
-an "unidentified developer". This is because v0.1.0 is not yet signed with
+an "unidentified developer". This is because v0.1.1 is not yet signed with
 an Apple Developer certificate.
 
 To bypass the warning (one time only):
@@ -15,7 +15,7 @@ After this one-time approval, double-clicking the app will launch it
 normally — macOS remembers your decision.
 
 Why the warning?
-  Almond is free and open-source. v0.1.0 ships unsigned because the
+  Almond is free and open-source. v0.1.1 ships unsigned because the
   Apple Developer Program ($99/year) is not yet registered. Code signing
   and notarization will be introduced in a later release.
 

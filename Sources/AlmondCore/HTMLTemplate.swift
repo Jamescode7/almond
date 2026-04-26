@@ -42,11 +42,11 @@ public enum HTMLTemplate {
             .markdown-body {
               box-sizing: border-box;
               min-width: 200px;
-              max-width: 760px;
+              max-width: 960px;
               margin: 0 auto;
               padding: 32px 16px 64px;
             }
-            @media (max-width: 760px) {
+            @media (max-width: 960px) {
               .markdown-body {
                 padding: 16px;
               }

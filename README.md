@@ -4,7 +4,7 @@
 
 [![macOS 13+](https://img.shields.io/badge/macOS-13.0%2B-blue)](https://www.apple.com/macos/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-[![Status: v0.1.0 MVP](https://img.shields.io/badge/status-v0.1.0%20MVP-orange)](doc/app_005_md_viewer.md)
+[![Status: v0.1.1](https://img.shields.io/badge/status-v0.1.1-orange)](doc/app_005_md_viewer.md)
 
 Open a `.md` file, see rendered markdown. That's it. No live editing, no subscriptions, no telemetry, fully offline.
 
@@ -21,7 +21,7 @@ Open a `.md` file, see rendered markdown. That's it. No live editing, no subscri
 
 ## Download & Install
 
-> v0.1.0 ships **unsigned** (no Apple Developer Program yet). macOS will show a Gatekeeper warning on first launch — see below.
+> v0.1.1 ships **unsigned** (no Apple Developer Program yet). macOS will show a Gatekeeper warning on first launch — see below.
 
 1. Download the latest DMG from [Releases](https://github.com/Jamescode7/almond/releases/latest).
 2. Open the DMG and drag **Almond.app** into your Applications folder.
@@ -32,7 +32,7 @@ After the one-time approval, double-click the app as usual.
 
 ---
 
-## Features (v0.1.0)
+## Features (v0.1.1)
 
 Supports CommonMark + GitHub Flavored Markdown:
 
@@ -59,7 +59,7 @@ UI:
 
 ---
 
-## Not in v0.1.0 (roadmap)
+## Not in v0.1.1 (roadmap)
 
 - Editing — viewer only. See [spec §11](doc/app_005_md_viewer.md) for the full negative-rules list.
 - LaTeX (KaTeX), Mermaid diagrams
@@ -114,7 +114,7 @@ xcodebuild -project Almond.xcodeproj -scheme Almond -configuration Debug build
 # Release build + DMG
 ./scripts/build-release.sh
 ./scripts/make-dmg.sh
-# → dist/Almond-0.1.0.dmg
+# → dist/Almond-0.1.1.dmg
 ```
 
 `project.yml` is the single source of truth. `Almond.xcodeproj`, `Info.plist`, and the `.entitlements` file are regenerated from it.
